@@ -1,0 +1,2480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Story Vista</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --ink:      #1a1714;
+    --ink2:     #4a4640;
+    --ink3:     #9a9490;
+    --cream:    #f7f3ee;
+    --cream2:   #ede8e1;
+    --cream3:   #e0d9cf;
+    --gold:     #c8902a;
+    --gold2:    #f0b84a;
+    --teal:     #1a7a6e;
+    --teal2:    #e8f5f3;
+    --coral:    #d45a3a;
+    --card:     #ffffff;
+    --shadow:   0 2px 12px rgba(26,23,20,0.08), 0 1px 3px rgba(26,23,20,0.06);
+    --shadow-lg:0 8px 40px rgba(26,23,20,0.12), 0 2px 8px rgba(26,23,20,0.08);
+    --r:        14px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { font-size:16px; scroll-behavior:smooth; }
+  body {
+    font-family:'DM Sans',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+    line-height:1.6;
+  }
+
+  /* ── Animated background texture ── */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 20%, rgba(200,144,42,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 90% 80%, rgba(26,122,110,0.05) 0%, transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+
+  /* ── Header ── */
+  header {
+    position:sticky; top:0; z-index:100;
+    background:rgba(247,243,238,0.92);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--cream3);
+    padding:0 32px;
+    display:flex; align-items:center; justify-content:space-between;
+    height:64px;
+  }
+  .logo {
+    font-family:'Lora',serif;
+    font-size:1.4rem;
+    font-weight:600;
+    color:var(--ink);
+    letter-spacing:-0.02em;
+    display:flex; align-items:center; gap:10px;
+    text-decoration:none;
+  }
+  .logo-mark {
+    width:32px; height:32px;
+    background:var(--ink);
+    border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .logo-mark svg { width:18px; height:18px; }
+  nav { display:flex; align-items:center; gap:8px; }
+  nav button {
+    background:none; border:none;
+    font-family:'DM Sans',sans-serif;
+    font-size:0.9rem; font-weight:400;
+    color:var(--ink2);
+    padding:8px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:all .15s;
+  }
+  nav button:hover { background:var(--cream2); color:var(--ink); }
+  nav button.active { background:var(--ink); color:var(--cream); }
+  .header-actions { display:flex; align-items:center; gap:10px; }
+  .btn-primary {
+    background:var(--gold);
+    color:#fff;
+    border:none;
+    font-family:'DM Sans',sans-serif;
+    font-size:0.9rem;
+    font-weight:500;
+    padding:9px 20px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .btn-primary:hover { background:var(--gold2); transform:translateY(-1px); box-shadow:var(--shadow); }
+
+  /* ── Main layout ── */
+  main { position:relative; z-index:1; }
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* ── Hero ── */
+  .hero {
+    padding:80px 32px 60px;
+    max-width:900px; margin:0 auto;
+    text-align:center;
+  }
+  .hero-eyebrow {
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--teal2);
+    color:var(--teal);
+    font-size:0.8rem; font-weight:500;
+    letter-spacing:0.06em; text-transform:uppercase;
+    padding:6px 14px;
+    border-radius:100px;
+    margin-bottom:28px;
+  }
+  .hero h1 {
+    font-family:'Lora',serif;
+    font-size:clamp(2.2rem,5vw,3.6rem);
+    font-weight:600;
+    line-height:1.15;
+    letter-spacing:-0.03em;
+    color:var(--ink);
+    margin-bottom:20px;
+  }
+  .hero h1 em { font-style:italic; color:var(--gold); }
+  .hero p {
+    font-size:1.1rem;
+    color:var(--ink2);
+    max-width:560px;
+    margin:0 auto 40px;
+    line-height:1.7;
+  }
+  .hero-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .btn-lg {
+    padding:14px 28px;
+    border-radius:12px;
+    font-family:'DM Sans',sans-serif;
+    font-size:1rem; font-weight:500;
+    cursor:pointer; border:none;
+    transition:all .2s;
+  }
+  .btn-lg.primary { background:var(--ink); color:var(--cream); }
+  .btn-lg.primary:hover { background:var(--ink2); transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+  .btn-lg.secondary { background:var(--card); color:var(--ink); border:1.5px solid var(--cream3); }
+  .btn-lg.secondary:hover { border-color:var(--ink2); transform:translateY(-1px); box-shadow:var(--shadow); }
+
+  /* ── Mode cards ── */
+  .mode-cards {
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:20px;
+    max-width:860px; margin:0 auto 80px;
+    padding:0 32px;
+  }
+  .mode-card {
+    background:var(--card);
+    border:1.5px solid var(--cream3);
+    border-radius:var(--r);
+    padding:32px;
+    cursor:pointer;
+    transition:all .2s;
+    text-align:left;
+  }
+  .mode-card:hover {
+    border-color:var(--ink2);
+    transform:translateY(-3px);
+    box-shadow:var(--shadow-lg);
+  }
+  .mode-card.story-mode:hover { border-color:var(--gold); }
+  .mode-card.lesson-mode:hover { border-color:var(--teal); }
+  .mode-icon {
+    width:48px; height:48px;
+    border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:20px;
+    font-size:1.5rem;
+  }
+  .story-mode .mode-icon { background:rgba(200,144,42,0.12); }
+  .lesson-mode .mode-icon { background:var(--teal2); }
+  .mode-card h3 {
+    font-family:'Lora',serif;
+    font-size:1.3rem;
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .mode-card p { font-size:0.9rem; color:var(--ink2); line-height:1.6; }
+  .mode-card .mode-tags { display:flex; gap:6px; margin-top:16px; flex-wrap:wrap; }
+  .tag {
+    font-size:0.75rem;
+    padding:4px 10px;
+    border-radius:100px;
+    font-weight:500;
+  }
+  .tag-gold { background:rgba(200,144,42,0.1); color:var(--gold); }
+  .tag-teal { background:var(--teal2); color:var(--teal); }
+  .tag-gray { background:var(--cream2); color:var(--ink2); }
+
+  /* ── Generator panel ── */
+  .generator {
+    max-width:960px; margin:0 auto;
+    padding:40px 32px 80px;
+  }
+  .generator-header {
+    display:flex; align-items:center; gap:16px;
+    margin-bottom:32px;
+  }
+  .generator-header h2 {
+    font-family:'Lora',serif;
+    font-size:1.8rem; font-weight:600;
+  }
+  .back-btn {
+    background:none; border:1.5px solid var(--cream3);
+    border-radius:9px;
+    padding:8px 14px;
+    font-family:'DM Sans',sans-serif;
+    font-size:0.85rem;
+    color:var(--ink2);
+    cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+    transition:all .15s;
+  }
+  .back-btn:hover { border-color:var(--ink2); color:var(--ink); }
+
+  /* ── Flyout Settings ── */
+  .settings-flyout {
+    display: none;
+    background: var(--card);
+    border: 1.5px solid var(--cream3);
+    border-radius: var(--r);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .settings-flyout.active {
+    display: block;
+  }
+  .settings-toggle {
+    background: none;
+    border: none;
+    color: var(--ink2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 12px 0 24px;
+  }
+  .settings-toggle:hover {
+    color: var(--ink);
+  }
+
+  /* ── Form ── */
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; }
+  .form-group { display:flex; flex-direction:column; gap:8px; }
+  .form-group.full { grid-column:1/-1; }
+  label {
+    font-size:0.85rem;
+    font-weight:500;
+    color:var(--ink2);
+    letter-spacing:0.01em;
+  }
+  input[type=text], textarea, select {
+    font-family:'DM Sans',sans-serif;
+    font-size:0.95rem;
+    color:var(--ink);
+    background:var(--card);
+    border:1.5px solid var(--cream3);
+    border-radius:10px;
+    padding:12px 14px;
+    outline:none;
+    transition:border-color .15s;
+    width:100%;
+  }
+  input[type=text]:focus, textarea:focus, select:focus {
+    border-color:var(--ink);
+  }
+  textarea { resize:vertical; min-height:90px; line-height:1.6; }
+
+  /* ── Age band selector ── */
+  .age-selector { display:flex; gap:8px; }
+  .age-btn {
+    flex:1;
+    background:var(--cream2);
+    border:1.5px solid transparent;
+    border-radius:9px;
+    padding:10px;
+    font-family:'DM Sans',sans-serif;
+    font-size:0.85rem; font-weight:500;
+    color:var(--ink2);
+    cursor:pointer;
+    text-align:center;
+    transition:all .15s;
+  }
+  .age-btn:hover { background:var(--cream3); }
+  .age-btn.active { background:var(--ink); color:var(--cream); border-color:var(--ink); }
+
+  /* ── Voice selector ── */
+  .voice-selector {
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .voice-option {
+    background:var(--cream2);
+    border:1.5px solid transparent;
+    border-radius:10px;
+    padding:12px 14px;
+    cursor:pointer;
+    display:flex; align-items:center; gap:10px;
+    transition:all .15s;
+  }
+  .voice-option:hover { background:var(--cream3); }
+  .voice-option.active { background:var(--card); border-color:var(--gold); }
+  .voice-avatar {
+    width:36px; height:36px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem;
+    background:var(--cream);
+    flex-shrink:0;
+  }
+  .voice-option .voice-name { font-size:0.85rem; font-weight:500; }
+  .voice-option .voice-desc { font-size:0.75rem; color:var(--ink3); }
+
+  /* ── Generate button ── */
+  .generate-btn {
+    width:100%;
+    background:var(--ink);
+    color:var(--cream);
+    border:none;
+    border-radius:12px;
+    padding:16px;
+    font-family:'DM Sans',sans-serif;
+    font-size:1rem; font-weight:500;
+    cursor:pointer;
+    transition:all .2s;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    margin-top:8px;
+  }
+  .generate-btn:hover:not(:disabled) { background:var(--gold); transform:translateY(-1px); box-shadow:var(--shadow-lg); }
+  .generate-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+  /* ── Loading state ── */
+  .loading-state {
+    display:none;
+    text-align:center;
+    padding:60px 20px;
+  }
+  .loading-state.visible { display:block; }
+  .loading-spinner {
+    width:48px; height:48px;
+    border:3px solid var(--cream3);
+    border-top-color:var(--gold);
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+    margin:0 auto 20px;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-steps { display:flex; flex-direction:column; gap:8px; align-items:center; margin-top:24px; }
+  .loading-step {
+    font-size:0.85rem;
+    color:var(--ink3);
+    display:flex; align-items:center; gap:8px;
+    transition:color .3s;
+  }
+  .loading-step.active { color:var(--ink); }
+  .loading-step.done { color:var(--teal); }
+  .step-dot {
+    width:8px; height:8px;
+    border-radius:50%;
+    background:var(--cream3);
+    transition:background .3s;
+  }
+  .loading-step.active .step-dot { background:var(--gold); }
+  .loading-step.done .step-dot { background:var(--teal); }
+
+  /* ── Story result ── */
+  .story-result { display:none; }
+  .story-result.visible { display:block; }
+  .story-header {
+    background:var(--card);
+    border:1.5px solid var(--cream3);
+    border-radius:var(--r);
+    padding:32px;
+    margin-bottom:20px;
+    position:relative;
+    overflow:hidden;
+  }
+  .story-header::before {
+    content:'';
+    position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg,var(--gold),var(--gold2));
+  }
+  .story-title {
+    font-family:'Lora',serif;
+    font-size:1.8rem; font-weight:600;
+    margin-bottom:8px;
+  }
+  .story-tagline { color:var(--ink2); font-size:1rem; font-style:italic; margin-bottom:20px; }
+  .story-meta { display:flex; gap:10px; flex-wrap:wrap; }
+
+  /* ── Audio player ── */
+  .audio-player {
+    background:var(--ink);
+    border-radius:12px;
+    padding:16px 20px;
+    display:flex; align-items:center; gap:16px;
+    margin:20px 0;
+    color:var(--cream);
+  }
+  .play-btn {
+    width:44px; height:44px;
+    border-radius:50%;
+    background:var(--gold);
+    border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    transition:all .15s;
+  }
+  .play-btn:hover { background:var(--gold2); transform:scale(1.05); }
+  .audio-progress { flex:1; }
+  .audio-progress-label { font-size:0.8rem; opacity:.7; margin-bottom:6px; }
+  .progress-bar {
+    height:4px; background:rgba(255,255,255,0.2);
+    border-radius:2px; overflow:hidden; cursor:pointer;
+  }
+  .progress-fill { height:100%; background:var(--gold2); border-radius:2px; width:0%; transition:width .1s; }
+  .audio-time { font-size:0.8rem; opacity:.7; font-variant-numeric:tabular-nums; }
+
+  /* ── Scene cards ── */
+  .scenes-grid {
+    display:grid; gap:16px;
+  }
+  .scene-card {
+    background:var(--card);
+    border:1.5px solid var(--cream3);
+    border-radius:var(--r);
+    overflow:hidden;
+    display:grid; grid-template-columns:240px 1fr;
+    transition:box-shadow .2s;
+  }
+  .scene-card:hover { box-shadow:var(--shadow); }
+  .scene-image {
+    background:var(--cream2);
+    position:relative; overflow:hidden;
+    min-height:160px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .scene-image img { width:100%; height:100%; object-fit:cover; }
+  .scene-image-placeholder {
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    color:var(--ink3); font-size:0.8rem; text-align:center; padding:16px;
+  }
+  .scene-image-placeholder .icon { font-size:2rem; }
+  .scene-content { padding:24px; }
+  .scene-number {
+    font-size:0.75rem; font-weight:500;
+    color:var(--ink3); letter-spacing:0.08em;
+    text-transform:uppercase; margin-bottom:8px;
+  }
+  .scene-title {
+    font-family:'Lora',serif;
+    font-size:1.1rem; font-weight:600;
+    margin-bottom:10px;
+  }
+  .scene-narrative { font-size:0.92rem; color:var(--ink2); line-height:1.7; margin-bottom:14px; }
+  .scene-fact {
+    background:var(--teal2);
+    border-left:3px solid var(--teal);
+    border-radius:0 8px 8px 0;
+    padding:10px 14px;
+    font-size:0.82rem; color:var(--teal);
+    font-style:italic;
+  }
+
+  /* ── Sources ── */
+  .sources-section {
+    background:var(--card);
+    border:1.5px solid var(--cream3);
+    border-radius:var(--r);
+    padding:24px;
+    margin-top:20px;
+  }
+  .sources-title {
+    font-size:0.85rem; font-weight:500;
+    color:var(--ink2); margin-bottom:14px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .source-item {
+    display:flex; align-items:center; gap:10px;
+    padding:8px 0;
+    border-bottom:1px solid var(--cream2);
+    font-size:0.85rem;
+    text-decoration:none; color:var(--ink2);
+    transition:color .15s;
+  }
+  .source-item:last-child { border-bottom:none; }
+  .source-item:hover { color:var(--teal); }
+  .source-dot { width:6px; height:6px; border-radius:50%; background:var(--teal); flex-shrink:0; }
+
+  /* ── Facts learned ── */
+  .facts-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:20px; }
+  .fact-card {
+    background:rgba(200,144,42,0.06);
+    border:1px solid rgba(200,144,42,0.2);
+    border-radius:10px;
+    padding:14px;
+    font-size:0.85rem; color:var(--ink2); line-height:1.5;
+    display:flex; gap:10px;
+  }
+  .fact-icon { color:var(--gold); flex-shrink:0; margin-top:1px; }
+
+  /* ── Voice cloning panel ── */
+  .clone-panel {
+    background:var(--card);
+    border:1.5px solid var(--cream3);
+    border-radius:var(--r);
+    padding:28px;
+    margin-bottom:20px;
+  }
+  .clone-panel h3 { font-family:'Lora',serif; font-size:1.2rem; margin-bottom:8px; }
+  .clone-panel p { font-size:0.88rem; color:var(--ink2); margin-bottom:20px; }
+  .upload-area {
+    border:2px dashed var(--cream3);
+    border-radius:12px;
+    padding:32px;
+    text-align:center;
+    cursor:pointer;
+    transition:all .2s;
+  }
+  .upload-area:hover { border-color:var(--gold); background:rgba(200,144,42,0.03); }
+  .upload-area p { font-size:0.88rem; color:var(--ink3); margin-top:8px; }
+  .upload-icon { font-size:2rem; margin-bottom:8px; }
+
+  /* ── Immersive Player ── */
+  #view-player { 
+    background:#0a0908; 
+    color:#fff; 
+    padding:0;
+    min-height:100vh;
+    overflow:hidden;
+  }
+  .player-layout {
+    display:grid; grid-template-columns: 240px 1fr 380px; height:100vh;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .player-layout.sidebar-collapsed {
+    grid-template-columns: 240px 1fr 0px;
+  }
+  .player-index {
+    background: #0f0e0d; border-right: 1px solid rgba(255,255,255,0.05);
+    padding: 30px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;
+  }
+  .index-item {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+    padding: 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+    font-size: 0.8rem; color: rgba(255,255,255,0.4);
+  }
+  .index-item.active {
+    background: rgba(180,140,40,0.1); border-color: var(--gold2); color: var(--gold2);
+  }
+  .player-center {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background: radial-gradient(circle at center, #1a1714 0%, #0a0908 100%);
+    position:relative; overflow:hidden; padding: 40px;
+  }
+  .player-image-box {
+    width:100%; max-width:90%; aspect-ratio:16/9; border-radius:24px; overflow:hidden;
+    box-shadow:0 30px 90px rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.1);
+  }
+  .player-image-box img { width:100%; height:100%; object-fit:cover; }
+  
+  .player-narrative-col {
+    background: #141210; border-left: 1px solid rgba(255,255,255,0.05);
+    display: flex; flex-direction: column; height: 100vh;
+    overflow: hidden;
+  }
+  .narrative-scroll {
+    flex: 1; overflow-y: auto; padding: 40px 30px;
+    font-family:'Lora',serif; font-size:1.5rem; line-height:1.7; color: rgba(255,255,255,0.5);
+  }
+  .player-controls-bottom {
+    padding: 30px; background: #0a0908; border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .player-controls {
+    position:absolute; bottom:40px; left:0; right:0; padding:0 60px;
+    display:flex; align-items:center; gap:24px;
+    background: linear-gradient(to top, rgba(10,9,8,0.8), transparent);
+    padding-top: 40px;
+  }
+  .player-sidebar {
+    background:rgba(20,18,16,0.95); border-left:1px solid rgba(255,255,255,0.05); padding:30px;
+    overflow-y: auto; overflow-x: hidden;
+  }
+  .sidebar-toggle {
+    position:absolute; top:30px; right:30px; background:rgba(255,255,255,0.1); color:#fff; border:none; padding:10px; border-radius:10px; cursor:pointer; z-index:100;
+  }
+  .player-btn {
+    background: none; border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0.8; transition: opacity 0.2s;
+  }
+  .player-btn:hover { opacity: 1; }
+  .player-btn svg { width: 28px; height: 28px; fill: currentColor; }
+  
+  .watermark {
+    font-size:0.75rem; color:rgba(255,255,255,0.3); letter-spacing:0.05em; font-weight:500; text-transform:uppercase;
+  }
+
+  /* ── Auth View ── */
+  #view-auth.active {
+    display: flex; align-items: center; justify-content: center; min-height: 100vh;
+    padding: 20px;
+  }
+  .auth-card {
+    background: var(--card); border: 1.5px solid var(--cream3); border-radius: 20px;
+    padding: 40px; width: 100%; max-width: 440px; box-shadow: var(--shadow-lg);
+    text-align: center;
+  }
+  .auth-tabs { display: flex; gap: 10px; margin-bottom: 30px; background: var(--cream2); padding: 5px; border-radius: 12px; }
+  .auth-tab { flex: 1; padding: 10px; border-radius: 8px; border: none; background: none; cursor: pointer; font-weight: 500; color: var(--ink3); transition: all 0.2s; }
+  .auth-tab.active { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+  
+  .user-badge {
+    display: flex; align-items: center; gap: 10px; background: var(--cream2); padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 500;
+  }
+  
+  /* ── Responsive ── */
+  @media(max-width:700px) {
+    header { padding:0 16px; }
+    .mode-cards { grid-template-columns:1fr; padding:0 16px; }
+    .hero { padding:48px 16px 40px; }
+    .generator { padding:24px 16px 60px; }
+    .form-grid { grid-template-columns:1fr; }
+    .voice-selector { grid-template-columns:1fr; }
+    .scene-card { grid-template-columns:1fr; }
+    .scene-image { min-height:180px; }
+    .facts-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header id="main-header" style="display:none;">
+    <a href="#" class="logo" onclick="showView('home')">
+      <div class="logo-mark"><svg viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></div>
+      Story Vista
+    </a>
+    <nav>
+      <button id="nav-home" onclick="showView('home')">Home</button>
+      <button id="nav-library" onclick="showView('library')">Library</button>
+      <button id="nav-corpus" onclick="showView('corpus')">Corpus</button>
+      <button id="nav-voices" onclick="showView('voices')">Voices</button>
+      <button id="nav-admin" style="display:none;" onclick="showView('admin')">Admin</button>
+    </nav>
+    <div class="header-actions">
+      <div id="user-info" class="user-badge">
+         <span id="user-email"></span>
+         <button onclick="logout()" style="background:none; border:none; color:var(--coral); cursor:pointer; font-size:0.75rem; font-weight:600; padding:0; margin-left:5px;">Logout</button>
+      </div>
+      <button class="btn-primary" onclick="showView('story-gen')">Create story</button>
+    </div>
+  </header>
+
+<main>
+
+  <!-- ── AUTH VIEW ── -->
+  <div class="view active" id="view-auth">
+    <div class="auth-card">
+      <div class="logo" style="justify-content:center; margin-bottom:30px; font-size:1.8rem;">
+        <div class="logo-mark" style="width:40px; height:40px;"><svg viewBox="0 0 24 24" fill="white"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></div>
+        Story Vista
+      </div>
+      
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="setAuthMode('login')">Sign In</button>
+        <button class="auth-tab" id="tab-register" onclick="setAuthMode('register')">Register</button>
+      </div>
+
+      <form id="auth-form" onsubmit="handleAuth(event)">
+        <div class="form-group" style="text-align:left; margin-bottom:20px;">
+          <label>Email Address</label>
+          <input type="email" id="auth-email" placeholder="name@email.com" required style="width:100%; padding:14px; border-radius:12px; border:1.5px solid var(--cream3);">
+        </div>
+        <div class="form-group" style="text-align:left; margin-bottom:30px;">
+          <label>Password</label>
+          <input type="password" id="auth-password" placeholder="••••••••" required style="width:100%; padding:14px; border-radius:12px; border:1.5px solid var(--cream3);">
+        </div>
+        <button type="submit" class="btn-lg primary" style="width:100%;" id="auth-submit-btn">Sign In</button>
+        <p id="auth-error" style="color:var(--coral); font-size:0.85rem; margin-top:20px; display:none;"></p>
+      </form>
+      
+      <div style="margin-top:40px; color:var(--ink3); font-size:0.85rem;">
+        Premium storytelling for curious minds.
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HOME ── -->
+  <div class="view" id="view-home">
+    <div class="hero">
+      <div class="hero-eyebrow">
+        <svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>
+        Powered by real knowledge
+      </div>
+      <h1>Stories that <em>teach.</em><br>Lessons that inspire.</h1>
+      <p>AI-generated stories and lessons grounded in verified knowledge — narrated in voices children trust.</p>
+      <div class="hero-actions">
+        <button class="btn-lg primary" onclick="showView('story-gen')">Create a story</button>
+        <button class="btn-lg secondary" onclick="showView('lesson-gen')">Build a lesson</button>
+      </div>
+    </div>
+
+    <div class="mode-cards">
+      <div class="mode-card story-mode" onclick="showView('story-gen')">
+        <div class="mode-icon">📖</div>
+        <h3>Story Mode</h3>
+        <p>Personalised bedtime stories grounded in real facts — narrated in a familiar voice your child loves.</p>
+        <div class="mode-tags">
+          <span class="tag tag-gold">Ages 3–12</span>
+          <span class="tag tag-gray">Voice cloning</span>
+          <span class="tag tag-gray">Multilingual</span>
+        </div>
+      </div>
+      <div class="mode-card lesson-mode" onclick="showView('lesson-gen')">
+        <div class="mode-icon">🎓</div>
+        <h3>Learning Mode</h3>
+        <p>Turn any topic into a structured, narrated lesson with visual scenes and curriculum-aligned objectives.</p>
+        <div class="mode-tags">
+          <span class="tag tag-teal">Educators</span>
+          <span class="tag tag-gray">Lesson plans</span>
+          <span class="tag tag-gray">Auto-cited</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STORY GENERATOR ── -->
+  <div class="view" id="view-story-gen">
+    <div class="generator">
+      <div class="generator-header">
+        <button class="back-btn" onclick="showView('home')">← Back</button>
+        <h2>Create a story</h2>
+      </div>
+
+      <div id="story-form">
+        <div class="form-grid" style="margin-bottom: 0;">
+          <div class="form-group full">
+            <label style="font-size: 1rem; color: var(--ink); margin-bottom: 4px;">What should the story be about?</label>
+            <input type="text" id="story-topic" placeholder="e.g. how photosynthesis works, the life of a honeybee..." style="font-size: 1.1rem; padding: 16px;" autofocus />
+          </div>
+          <div class="form-group full" style="margin-top: 8px;">
+            <label>Age group</label>
+            <div class="age-selector">
+              <button class="age-btn" onclick="selectAge(this,'3-5')">3–5</button>
+              <button class="age-btn active" onclick="selectAge(this,'6-8')">6–8</button>
+              <button class="age-btn" onclick="selectAge(this,'9-12')">9–12</button>
+            </div>
+          </div>
+          <div class="form-group full" style="display: flex; gap: 20px; margin-top: 8px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.95rem;" id="images-toggle-wrapper">
+              <input type="checkbox" id="story-with-images" checked style="width:16px;height:16px;" /> Generate images (media)
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.95rem;">
+              <input type="checkbox" id="story-with-audio" style="width:16px;height:16px;" onchange="
+                const scenesGroup = document.getElementById('scenes-group');
+                const imagesWrapper = document.getElementById('images-toggle-wrapper');
+                const imagesCheckbox = document.getElementById('story-with-images');
+                if(this.checked) {
+                  scenesGroup.style.display = 'none';
+                  imagesWrapper.style.opacity = '0.5';
+                  imagesCheckbox.checked = false;
+                  imagesCheckbox.disabled = true;
+                } else {
+                  scenesGroup.style.display = 'flex';
+                  imagesWrapper.style.opacity = '1';
+                  imagesCheckbox.disabled = false;
+                }
+              " /> Complete audio mode
+            </label>
+          </div>
+        </div>
+
+        <button class="settings-toggle" onclick="toggleSettings('story-settings')">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.376l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/></svg>
+          Advanced Settings
+        </button>
+
+        <div id="story-settings" class="settings-flyout">
+          <div class="form-grid" style="margin-bottom: 0;">
+            <div class="form-group" style="grid-column: 1 / -1;" id="scenes-group">
+              <label>Number of scenes</label>
+              <select id="story-scenes">
+                <option value="3">3 scenes</option>
+                <option value="4" selected>4 scenes</option>
+                <option value="5">5 scenes</option>
+                <option value="6">6 scenes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Main character (optional)</label>
+              <input type="text" id="story-character" placeholder="e.g. a curious 7-year-old girl named Ada..." />
+            </div>
+            <div class="form-group">
+              <label>Setting (optional)</label>
+              <input type="text" id="story-setting" placeholder="e.g. a Nigerian village, outer space..." />
+            </div>
+            <div class="form-group full">
+              <label>Narration voice</label>
+              <div class="voice-selector">
+                <div class="voice-option active" onclick="selectVoice(this,'EXAVITQu4vr4xnSDxMaL')">
+                  <div class="voice-avatar">👩</div>
+                  <div><div class="voice-name">Sarah</div><div class="voice-desc">Warm storyteller</div></div>
+                </div>
+                <div class="voice-option" onclick="selectVoice(this,'TxGEqnHWrfWFTfGW9XjX')">
+                  <div class="voice-avatar">👨</div>
+                  <div><div class="voice-name">Josh</div><div class="voice-desc">Friendly narrator</div></div>
+                </div>
+                <div class="voice-option" onclick="selectVoice(this,'jBpfuIE2acCO8z3wKNLl')">
+                  <div class="voice-avatar">🧒</div>
+                  <div><div class="voice-name">Gigi</div><div class="voice-desc">Child-friendly</div></div>
+                </div>
+                <div class="voice-option" onclick="selectVoice(this,'cloned')">
+                  <div class="voice-avatar">⭐</div>
+                  <div><div class="voice-name">Your voice</div><div class="voice-desc">Clone on Voices tab</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="generate-btn" onclick="generateStory()">
+          <span>✨</span> Generate story
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-state" id="story-loading">
+        <div class="loading-spinner"></div>
+        <p style="font-family:'Lora',serif;font-size:1.1rem;margin-bottom:8px">Creating your story...</p>
+        <p style="font-size:0.85rem;color:var(--ink3)">Grounding in real knowledge from trusted sources</p>
+        <div class="loading-steps" id="story-steps">
+          <div class="loading-step" id="step-retrieve"><div class="step-dot"></div>Retrieving knowledge blocks</div>
+          <div class="loading-step" id="step-generate"><div class="step-dot"></div>Generating narrative</div>
+          <div class="loading-step" id="step-images"><div class="step-dot"></div>Sourcing images</div>
+          <div class="loading-step" id="step-voice"><div class="step-dot"></div>Preparing narration</div>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div class="story-result" id="story-result"></div>
+    </div>
+  </div>
+
+  <!-- ── LESSON GENERATOR ── -->
+  <div class="view" id="view-lesson-gen">
+    <div class="generator">
+      <div class="generator-header">
+        <button class="back-btn" onclick="showView('home')">← Back</button>
+        <h2>Build a lesson</h2>
+      </div>
+
+      <div id="lesson-form">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Lesson topic</label>
+            <input type="text" id="lesson-topic" placeholder="e.g. the water cycle, fractions, the human digestive system..." />
+          </div>
+          <div class="form-group full" style="margin-top: 8px;">
+            <label>Age group</label>
+            <div class="age-selector">
+              <button class="age-btn" onclick="selectLessonAge(this,'3-5')">3–5</button>
+              <button class="age-btn" onclick="selectLessonAge(this,'6-8')">6–8</button>
+              <button class="age-btn active" onclick="selectLessonAge(this,'9-12')">9–12</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="settings-toggle" onclick="toggleSettings('lesson-settings')">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/><path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.376l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/></svg>
+          Advanced Settings
+        </button>
+
+        <div id="lesson-settings" class="settings-flyout">
+          <div class="form-grid" style="margin-bottom: 0;">
+            <div class="form-group">
+              <label>Subject area</label>
+              <select id="lesson-subject">
+                <option value="">Any subject</option>
+                <option value="science">Science</option>
+                <option value="maths">Maths</option>
+                <option value="history">History</option>
+                <option value="geography">Geography</option>
+                <option value="english">English</option>
+                <option value="technology">Technology</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Lesson duration</label>
+              <select id="lesson-duration">
+                <option value="15">15 minutes</option>
+                <option value="20" selected>20 minutes</option>
+                <option value="30">30 minutes</option>
+                <option value="45">45 minutes</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Curriculum note (optional)</label>
+              <input type="text" id="lesson-curriculum" placeholder="e.g. NERDC primary 4 science, GCSE Biology Unit 1..." />
+            </div>
+          </div>
+        </div>
+
+        <button class="generate-btn" onclick="generateLesson()">
+          <span>🎓</span> Generate lesson
+        </button>
+      </div>
+
+      <div class="loading-state" id="lesson-loading">
+        <div class="loading-spinner"></div>
+        <p style="font-family:'Lora',serif;font-size:1.1rem;margin-bottom:8px">Building your lesson...</p>
+        <p style="font-size:0.85rem;color:var(--ink3)">Structuring knowledge into curriculum-ready content</p>
+        <div class="loading-steps">
+          <div class="loading-step" id="lesson-step-retrieve"><div class="step-dot"></div>Retrieving knowledge blocks</div>
+          <div class="loading-step" id="lesson-step-generate"><div class="step-dot"></div>Synthesizing lesson plan</div>
+          <div class="loading-step" id="lesson-step-visuals"><div class="step-dot"></div>Crafting lesson visuals</div>
+        </div>
+      </div>
+
+      <div class="story-result" id="lesson-result"></div>
+    </div>
+  </div>
+
+  <!-- ── VOICES ── -->
+  <!-- ── LIBRARY ── -->
+  <!-- ── IMMERSIVE PLAYER ── -->
+  <div class="view" id="view-player">
+    <div class="player-layout" id="player-layout">
+      <!-- 1. LEFT: SCENE INDEX -->
+      <div class="player-index" id="player-scene-index">
+         <!-- Scene thumbnails/links added via JS -->
+      </div>
+
+      <!-- 2. CENTER: CINEMATIC VISUAL -->
+      <div class="player-center">
+        <button onclick="showView('home')" style="position:absolute; top:30px; left:30px; background:rgba(255,255,255,0.1); color:#fff; border:none; padding:12px 24px; border-radius:30px; cursor:pointer; font-size:0.85rem; backdrop-filter:blur(10px); z-index:100; font-weight:500;">✕ Leave Player</button>
+        
+        <div class="player-image-box" id="player-visual-box">
+           <!-- Dynamic Image -->
+        </div>
+
+        <div style="position:absolute; bottom:15px; width:100%; text-align:center;" class="watermark">
+           Copyright Storyvista by Elizabeth O. Edwards | appvista.space
+        </div>
+      </div>
+
+      <!-- 3. RIGHT: NARRATION & PLAYLIST -->
+      <div class="player-narrative-col" id="player-sidebar">
+        <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+           <div id="player-scene-tag" style="font-size:0.7rem; color:var(--gold2); text-transform:uppercase; letter-spacing:0.1em; font-weight:700;">Scene 1</div>
+           <button class="sidebar-toggle" onclick="togglePlayerSidebar()" title="Toggle Playlist" style="position:static; padding:8px; background:none; border:none; color:#fff; cursor:pointer;">
+             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+           </button>
+        </div>
+
+        <div class="narrative-scroll" id="player-text-content">
+           <!-- Synced text here -->
+        </div>
+
+        <div class="player-controls-bottom">
+           <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px;">
+             <button class="player-btn" onclick="togglePlayerPlayPause()" id="player-play-btn" style="background:var(--gold2); border-radius:50%; width:44px; height:44px;">
+                <svg viewBox="0 0 24 24" id="svg-pause" style="width:20px; height:20px;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                <svg viewBox="0 0 24 24" id="svg-play" style="display:none; width:20px; height:20px;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+             </button>
+             
+             <div style="flex:1">
+               <div id="player-progress-container" style="height:4px; background:rgba(255,255,255,0.1); border-radius:2px; position:relative; overflow:hidden; cursor:pointer;">
+                  <div id="player-progress-fill" style="position:absolute; left:0; top:0; height:100%; background:var(--gold2); width:0%;"></div>
+               </div>
+               <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:0.7rem; color:rgba(255,255,255,0.4);">
+                  <div id="player-time">0:00</div>
+                  <div style="display:flex; gap:12px;">
+                    <button onclick="exportStoryToMP4()" style="background:none; border:none; color:inherit; cursor:pointer;" title="Export as Video">Video ↓</button>
+                    <button onclick="downloadCurrentStoryPDF()" style="background:none; border:none; color:inherit; cursor:pointer;" title="Download as PDF">PDF ↓</button>
+                  </div>
+                </div>
+             </div>
+           </div>
+
+           <div id="player-up-next" style="max-height: 200px; overflow-y: auto;">
+             <!-- Playlist items -->
+           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="media-modal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(26,23,20,0.8); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(8px);">
+    <div class="modal-content" style="background:#fff; width:95%; max-width:1100px; max-height:90vh; overflow-y:auto; padding:0; border-radius:24px; box-shadow:var(--shadow-lg);">
+      <div style="padding:40px; background:var(--ink); color:#fff; position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h2 style="font-family:'Lora',serif; margin:0;">Manage Story Media</h2>
+          <p style="font-size:0.85rem; color:rgba(255,255,255,0.5); margin-top:4px;">Override images for any slide in this story.</p>
+        </div>
+        <button onclick="document.getElementById('media-modal').style.display='none'" style="background:rgba(255,255,255,0.1); border:none; color:#fff; width:44px; height:44px; border-radius:50%; cursor:pointer; font-size:1.5rem;">✕</button>
+      </div>
+      
+      <div id="media-manager-list" style="padding:40px; display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:30px;">
+        <!-- Scenes populated here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ADMIN PANEL ── -->
+  <div class="view" id="view-admin">
+    <div class="generator" style="max-width:1100px;">
+      <div class="generator-header">
+        <button class="back-btn" onclick="showView('home')">← Back</button>
+        <h2>Admin Management</h2>
+      </div>
+
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; margin-bottom:40px;">
+        <div style="background:var(--card); padding:24px; border-radius:12px; border:1px solid var(--cream3);">
+           <div style="font-size:0.75rem; color:var(--ink3); text-transform:uppercase; font-weight:600;">Total Users</div>
+           <div id="admin-user-count" style="font-size:2rem; font-weight:600; margin-top:10px;">...</div>
+        </div>
+        <div style="background:var(--card); padding:24px; border-radius:12px; border:1px solid var(--cream3);">
+           <div style="font-size:0.75rem; color:var(--ink3); text-transform:uppercase; font-weight:600;">System Status</div>
+           <div style="font-size:1.1rem; font-weight:600; margin-top:10px; color:var(--teal);">● Online</div>
+        </div>
+        <div style="background:var(--card); padding:24px; border-radius:12px; border:1px solid var(--cream3);">
+           <div style="font-size:0.75rem; color:var(--ink3); text-transform:uppercase; font-weight:600;">Role</div>
+           <div style="font-size:1.1rem; font-weight:600; margin-top:10px; color:var(--gold);">Administrator</div>
+        </div>
+      </div>
+
+      <h3 style="font-family:'Lora',serif; margin-bottom:16px;">Registered Users</h3>
+      <div style="background:var(--card); border:1px solid var(--cream3); border-radius:12px; overflow:hidden;">
+        <table style="width:100%; border-collapse:collapse; text-align:left;">
+          <thead style="background:var(--cream2); font-size:0.85rem; color:var(--ink2);">
+            <tr>
+              <th style="padding:14px;">Email</th>
+              <th style="padding:14px;">Role</th>
+              <th style="padding:14px;">Joined</th>
+              <th style="padding:14px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-user-list">
+            <!-- Loaded via JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LIBRARY / PLAYLIST ── -->
+  <div class="view" id="view-library">
+    <div class="generator" style="max-width:1200px;">
+      <div style="display:grid; grid-template-columns: 1fr 300px; gap:40px;">
+        <!-- Left: Library Grid -->
+        <div>
+          <div class="generator-header">
+            <button class="back-btn" onclick="showView('home')">← Back</button>
+            <h2>My Library</h2>
+          </div>
+          <div id="library-list" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:20px;">
+            <!-- Items load here -->
+          </div>
+          <div id="library-empty" style="display:none; text-align:center; padding:80px 20px; color:var(--ink3)">
+            <div style="font-size:3.5rem; margin-bottom:16px; opacity:0.5">📂</div>
+            <p>Your library is empty.</p>
+          </div>
+        </div>
+
+        <!-- Right: Playlist Sidebar -->
+        <div style="position:sticky; top:32px; background:var(--card); border:1.5px solid var(--cream3); border-radius:var(--r); padding:24px; height:fit-content; max-height:calc(100vh - 100px); overflow-y:auto; box-shadow:var(--shadow);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+            <h3 style="font-family:'Lora',serif; margin:0">Playlist</h3>
+            <button onclick="clearPlaylist()" style="font-size:0.75rem; color:var(--coral); background:none; border:none; cursor:pointer;">Clear</button>
+          </div>
+          
+          <div id="playlist-list" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px">
+            <!-- Playlist items here -->
+            <div style="text-align:center; padding:30px; color:var(--ink3); font-size:0.85rem; border:1px dashed var(--cream3); border-radius:10px;">
+              No stories in queue.<br>Click <span style="font-size:1rem; vertical-align:middle">+</span> on a card to add.
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:10px">
+            <button id="btn-play-playlist" class="btn-primary" onclick="startPlaylist()" style="width:100%; padding:10px;" disabled>Play Playlist</button>
+            <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; cursor:pointer;">
+              <input type="checkbox" id="chk-loop-playlist" onchange="isLoopingPlaylist = this.checked"> Loop continuously
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-corpus">
+    <div class="generator" style="max-width:1200px;">
+      <div style="display:grid; grid-template-columns: 1fr 340px; gap:40px;">
+        <!-- Public: Available Data -->
+        <div>
+          <div class="generator-header">
+            <button class="back-btn" onclick="showView('home')">← Back</button>
+            <h2>Available Data Corpus</h2>
+          </div>
+          <p style="color:var(--ink2); margin-bottom:24px;">The following data has been verified and is used to ground Story Vista generations.</p>
+          <div id="corpus-list" style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+             <!-- Data blocks here -->
+          </div>
+        </div>
+
+        <!-- Admin: Update Corpus -->
+        <div style="display:flex; flex-direction:column; gap:20px;">
+          <!-- User Personal Knowledge -->
+          <div style="background:var(--card); border:1.5px solid var(--teal); border-radius:var(--r); padding:30px; box-shadow:var(--shadow);">
+            <h3 style="font-family:'Lora',serif; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+              <span>📝</span> Personal Content
+            </h3>
+            <p style="font-size:0.85rem; color:var(--ink2); margin-bottom:20px;">Any private facts you add here will be used to ground stories for <em>your</em> device only.</p>
+            <div class="field">
+              <label>Fact or Story Detail</label>
+              <textarea id="user-fact" placeholder="e.g. My daughter's favorite toy is a blue dragon named Sparky." style="width:100%; height:80px; padding:12px; border:1.5px solid var(--cream3); border-radius:8px; font-family:inherit; resize:none;"></textarea>
+            </div>
+            <button class="btn-primary" onclick="addPersonalFact()" style="width:100%; padding:14px; margin-top:12px;">Store Privately</button>
+          </div>
+
+          <!-- Admin: Global Update -->
+          <div style="background:var(--card); border:1.5px solid var(--gold); border-radius:var(--r); padding:30px; box-shadow:var(--shadow-lg);">
+            <h3 style="font-family:'Lora',serif; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+              <span>🛡️</span> Admin Corpus
+            </h3>
+            <p style="font-size:0.85rem; color:var(--ink2); margin-bottom:24px;">Global Firecrawl ingestion.</p>
+            
+            <div style="display:flex; flex-direction:column; gap:16px;">
+              <div class="field">
+                <label>Topic</label>
+                <input type="text" id="admin-topic" placeholder="e.g. Nigerian History">
+              </div>
+              <div class="field">
+                <label>Passkey</label>
+                <input type="password" id="admin-token" placeholder="••••••••">
+              </div>
+              <button class="btn-primary" id="btn-ingest" onclick="triggerIngest()" style="width:100%; padding:14px; background:var(--gold); border-color:var(--gold);">Start Ingestion</button>
+              <div id="ingest-status" style="display:none; padding:16px; background:var(--teal2); border-radius:10px; font-size:0.85rem; color:var(--teal)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="view" id="view-voices">
+    <div class="generator">
+      <div class="generator-header">
+        <button class="back-btn" onclick="showView('home')">← Back</button>
+        <h2>Voice library</h2>
+      </div>
+
+      <div class="clone-panel">
+        <h3>Clone your voice</h3>
+        <p>Record 1–3 minutes of yourself reading naturally. Story Vista will narrate every story in your voice — so your child hears <em>you</em>, even at bedtime.</p>
+        <div class="upload-area" onclick="document.getElementById('voice-file-input').click()">
+          <div class="upload-icon">🎙️</div>
+          <strong style="font-size:0.95rem">Upload audio sample</strong>
+          <p>.mp3, .wav, or .m4a — at least 60 seconds, clear speech</p>
+          <input type="file" id="voice-file-input" accept=".mp3,.wav,.m4a,.ogg,.webm" style="display:none" onchange="handleVoiceUpload(this)">
+        </div>
+        <div id="voice-upload-status" style="display:none;margin-top:16px;padding:14px;background:var(--teal2);border-radius:10px;font-size:0.88rem;color:var(--teal)"></div>
+      </div>
+
+      <div class="clone-panel">
+        <h3>Built-in voices</h3>
+        <p>Carefully selected voices suitable for children's content across all age groups.</p>
+        <div class="voice-selector" style="margin-top:0">
+          <div class="voice-option"><div class="voice-avatar">👩</div><div><div class="voice-name">Sarah</div><div class="voice-desc">Warm, engaging — story mode</div></div></div>
+          <div class="voice-option"><div class="voice-avatar">👨</div><div><div class="voice-name">Josh</div><div class="voice-desc">Friendly, clear — story mode</div></div></div>
+          <div class="voice-option"><div class="voice-avatar">👩‍🏫</div><div><div class="voice-name">Matilda</div><div class="voice-desc">Professional, warm — lessons</div></div></div>
+          <div class="voice-option"><div class="voice-avatar">👨‍🏫</div><div><div class="voice-name">Daniel</div><div class="voice-desc">Clear, authoritative — lessons</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = '/api/v1';
+let selectedAge = '6-8';
+let selectedLessonAge = '9-12';
+let selectedVoiceId = 'EXAVITQu4vr4xnSDxMaL';
+let currentStory = null;
+let currentAudioNode = null;
+
+// Playlist state
+let playlist = [];
+let currentIndex = -1;
+let isLoopingPlaylist = false;
+let isPlaylistMode = false;
+
+// Fingerprinting for Personal Corpus
+let userId = localStorage.getItem('story_vista_uid') || 'uid_' + Math.random().toString(36).slice(2, 10);
+localStorage.setItem('story_vista_uid', userId);
+
+// ── Navigation ────────────────────────────────────────────────
+// ── Auth State ────────────────────────────────────────────────
+let authToken = localStorage.getItem('sv_token');
+let currentUser = JSON.parse(localStorage.getItem('sv_user') || 'null');
+let authMode = 'login';
+
+// Initialize Auth
+if (authToken) {
+  document.getElementById('main-header').style.display = 'flex';
+  document.getElementById('view-auth').classList.remove('active');
+  document.getElementById('view-home').classList.add('active');
+  document.getElementById('user-email').textContent = currentUser.email;
+  if(currentUser.role === 'admin') document.getElementById('nav-admin').style.display = 'block';
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+  document.getElementById('tab-register').classList.toggle('active', mode === 'register');
+  document.getElementById('auth-submit-btn').textContent = mode === 'login' ? 'Sign In' : 'Create Account';
+}
+
+async function handleAuth(e) {
+  e.preventDefault();
+  const email = document.getElementById('auth-email').value;
+  const password = document.getElementById('auth-password').value;
+  const errorEl = document.getElementById('auth-error');
+  const btn = document.getElementById('auth-submit-btn');
+
+  errorEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Authenticating...';
+
+  try {
+    const res = await fetch(`${API}/auth/${authMode}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Authentication failed');
+
+    // Success
+    authToken = data.token;
+    currentUser = data.user;
+    localStorage.setItem('sv_token', authToken);
+    localStorage.setItem('sv_user', JSON.stringify(currentUser));
+
+    // UI Update
+    document.getElementById('main-header').style.display = 'flex';
+    document.getElementById('user-email').textContent = currentUser.email;
+    if(currentUser.role === 'admin') document.getElementById('nav-admin').style.display = 'block';
+    
+    // Switch to home and ensure auth view is hidden
+    document.getElementById('view-auth').classList.remove('active');
+    showView('home');
+
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authMode === 'login' ? 'Sign In' : 'Create Account';
+  }
+}
+
+function logout() {
+  localStorage.removeItem('sv_token');
+  localStorage.removeItem('sv_user');
+  location.reload();
+}
+
+function showView(viewId) {
+  if (!authToken && viewId !== 'auth') {
+    showView('auth');
+    return;
+  }
+  
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + viewId)?.classList.add('active');
+  const navMap = { home:'nav-home', 'story-gen':'nav-story', 'lesson-gen':'nav-lesson', library:'nav-library', corpus:'nav-corpus', voices:'nav-voices', player:'nav-none', admin:'nav-admin' };
+  document.getElementById(navMap[viewId])?.classList.add('active');
+  window.scrollTo({ top:0, behavior:'smooth' });
+
+  if (viewId === 'library') showLibrary();
+  if (viewId === 'corpus') showCorpus();
+  if (viewId === 'admin') showAdmin();
+}
+
+async function showAdmin() {
+  if (currentUser?.role !== 'admin') {
+    alert("Unauthorized access");
+    showView('home');
+    return;
+  }
+  
+  const list = document.getElementById('admin-user-list');
+  list.innerHTML = '<tr><td colspan="4" style="padding:40px; text-align:center; color:var(--ink3)">Loading users...</td></tr>';
+
+  try {
+    const res = await fetch(`${API}/auth/users`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    const users = await res.json();
+    
+    document.getElementById('admin-user-count').textContent = users.length;
+    list.innerHTML = users.map(u => `
+      <tr style="border-top:1px solid var(--cream2); font-size:0.9rem;">
+        <td style="padding:14px;">${u.email}</td>
+        <td style="padding:14px;"><span class="tag ${u.role === 'admin' ? 'tag-gold' : 'tag-gray'}">${u.role}</span></td>
+        <td style="padding:14px; color:var(--ink3); font-size:0.8rem;">${new Date(u.created_at).toLocaleDateString()}</td>
+        <td style="padding:14px;">
+           <button onclick="deleteAdminUser('${u.id}')" style="background:none; border:none; color:var(--coral); cursor:pointer; font-size:0.85rem;">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    list.innerHTML = `<tr><td colspan="4" style="color:var(--coral); padding:20px;">Error: ${err.message}</td></tr>`;
+  }
+}
+
+async function deleteAdminUser(id) {
+  if (!confirm('Permanently delete this user account?')) return;
+  try {
+    const res = await fetch(`${API}/auth/users/${id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (res.ok) showAdmin();
+  } catch (err) {
+    alert("Delete failed: " + err.message);
+  }
+}
+
+function toggleSettings(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('active');
+}
+
+// ── Selectors ─────────────────────────────────────────────────
+function selectAge(btn, age) {
+  selectedAge = age;
+  document.querySelectorAll('#story-form .age-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function selectLessonAge(btn, age) {
+  selectedLessonAge = age;
+  document.querySelectorAll('#lesson-form .age-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function selectVoice(el, voiceId) {
+  selectedVoiceId = voiceId;
+  document.querySelectorAll('.voice-option').forEach(v => v.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── Loading step helpers ──────────────────────────────────────
+function setStep(id, state) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('active','done');
+  if (state) el.classList.add(state);
+}
+
+// ── Story generation ──────────────────────────────────────────
+async function generateStory() {
+  const topic = document.getElementById('story-topic').value.trim();
+  if (!topic) { alert('Please enter a story topic'); return; }
+
+  const form = document.getElementById('story-form');
+  const loading = document.getElementById('story-loading');
+  const result = document.getElementById('story-result');
+
+  form.style.display = 'none';
+  loading.classList.add('visible');
+  result.classList.remove('visible');
+  result.innerHTML = '';
+
+  // Animate steps
+  setStep('step-retrieve','active');
+  await delay(1200);
+  setStep('step-retrieve','done'); setStep('step-generate','active');
+  await delay(1000);
+  setStep('step-generate','done'); setStep('step-images','active');
+
+  try {
+    const res = await fetch(`${API}/story/generate`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        topic,
+        ageBand: selectedAge,
+        region: 'ng',
+        characterHint: document.getElementById('story-character').value,
+        settingHint: document.getElementById('story-setting').value,
+        sceneCount: parseInt(document.getElementById('story-scenes').value),
+        withImages: document.getElementById('story-with-images').checked,
+        withAudio: document.getElementById('story-with-audio').checked,
+        voiceId: selectedVoiceId,
+        userId: userId,
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Generation failed');
+    }
+
+    const withImages = document.getElementById('story-with-images').checked;
+    const withAudio = document.getElementById('story-with-audio').checked;
+    
+    if (withImages) {
+      setStep('step-images','done'); 
+    }
+    if (withAudio) {
+      setStep('step-voice','active');
+    }
+    const story = await res.json();
+    currentStory = story;
+    await delay(600);
+    if (withAudio) {
+      setStep('step-voice','done');
+    }
+
+    loading.classList.remove('visible');
+    renderStory(story);
+    result.classList.add('visible');
+    form.style.display = 'block';
+
+  } catch (err) {
+    loading.classList.remove('visible');
+    form.style.display = 'block';
+    result.innerHTML = `<div style="background:#fff0ee;border:1.5px solid #f0c0b8;border-radius:12px;padding:24px;color:var(--coral)">
+      <strong>Generation failed</strong><br><small>${err.message}</small>
+      <br><br><small style="color:var(--ink3)">Make sure the API is running and sources have been ingested.</small>
+    </div>`;
+    result.classList.add('visible');
+  }
+}
+
+function renderStory(story) {
+  const el = document.getElementById('story-result');
+  const tags = [
+    `<span class="tag tag-gray">${story.ageband || selectedAge}</span>`,
+    story._meta?.mode === 'generic' 
+      ? `<span class="tag tag-teal">Creative</span>`
+      : `<span class="tag tag-gold">${(story.factsLearned||[]).length} facts</span>`,
+    story._meta?.mode === 'generic'
+      ? `<span class="tag tag-gray">Imagined journey</span>`
+      : `<span class="tag tag-teal">Verified knowledge</span>`,
+  ].join('');
+
+  const scenes = (story.scenes || []).map(scene => {
+    const img = scene.media?.url
+      ? `<img src="${scene.media.url}" alt="${scene.title}" loading="lazy">`
+      : `<div class="scene-image-placeholder"><div class="icon">🖼️</div><span>Image</span></div>`;
+    const fact = scene.educationalMoment
+      ? `<div class="scene-fact">💡 ${scene.educationalMoment}</div>` : '';
+    return `
+      <div class="scene-card">
+        <div class="scene-image">${img}</div>
+        <div class="scene-content">
+          <div class="scene-number">Scene ${scene.sceneNumber}</div>
+          <div class="scene-title">${scene.title}</div>
+          <div class="scene-narrative">${scene.narrative}</div>
+          ${fact}
+        </div>
+      </div>`;
+  }).join('');
+
+  const facts = (story.factsLearned || []).map(f =>
+    `<div class="fact-card"><span class="fact-icon">★</span>${f}</div>`
+  ).join('');
+
+  const sources = (story.sources || []).map(s =>
+    `<a href="${s.url}" target="_blank" class="source-item"><div class="source-dot"></div>${s.name}</a>`
+  ).join('');
+
+  const isAudioOnly = !!(story.introAudioUrl || story.isFullNarration);
+  const withImagesChecked = document.getElementById('story-with-images').checked;
+  const showScenes = !isAudioOnly || withImagesChecked;
+
+  // For Complete Audio Mode WITHOUT images checked, we show a persistent thumbnail (cover card)
+  let audioCover = '';
+  if (isAudioOnly && !withImagesChecked && story.scenes && story.scenes.length > 0) {
+    const firstImg = story.scenes[0].media?.url;
+    if (firstImg) {
+      audioCover = `
+        <div class="audio-cover-card" style="margin-bottom:32px; position:relative; overflow:hidden; border-radius:var(--r); height:240px; box-shadow:var(--shadow-lg);">
+          <img src="${firstImg}" style="width:100%; height:100%; object-fit:cover; filter:blur(2px) brightness(0.7);">
+          <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; text-shadow:0 2px 4px rgba(0,0,0,0.5);">
+            <div style="font-size:3rem; margin-bottom:12px; opacity:0.9;">🔊</div>
+            <div style="font-family:'Lora',serif; font-size:1.4rem; font-weight:600; padding:0 30px; text-align:center;">${story.title}</div>
+            <div style="font-size:0.9rem; margin-top:6px; opacity:0.8;">Full Audio Storytelling Active</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  const scenesOutput = showScenes ? `<div class="scenes-grid">${scenes}</div>` : audioCover;
+  
+  const audioAlert = (document.getElementById('story-with-audio').checked && !isAudioOnly)
+    ? `<div style="background:#fff0ee;color:var(--coral);padding:14px;border-radius:10px;font-size:0.85rem;margin-bottom:16px;">
+        <strong>Notice:</strong> Complete audio narration failed to generate (likely API key issues). Title narration fallback is active.
+       </div>`
+    : '';
+
+  el.innerHTML = `
+    <div class="story-header" style="${isAudioOnly ? 'text-align:center;padding:40px 20px;' : ''}">
+      <div class="story-title" style="${isAudioOnly ? 'font-size:2rem;' : ''}">${story.title}</div>
+      <div class="story-tagline">${story.tagline || ''}</div>
+      <div class="story-meta" style="${isAudioOnly ? 'justify-content:center;' : ''}">${tags}</div>
+      ${audioAlert}
+      <div class="audio-player" style="margin-top:28px; background:var(--teal2); padding:20px; border-radius:30px; ${isAudioOnly ? 'max-width:500px; margin-left:auto; margin-right:auto;' : ''}">
+        <button class="play-btn" id="res-play-btn" onclick="playNarration()" title="Play narration" style="width:48px;height:48px;">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="white"><polygon points="4,2 14,8 4,14"/></svg>
+        </button>
+        <button class="play-btn" onclick="stopNarration()" title="Stop" style="width:48px;height:48px; background:var(--coral); margin-left:8px;">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="white"><rect x="4" y="4" width="8" height="8"/></svg>
+        </button>
+        <div class="audio-progress">
+          <div class="audio-progress-label">${isAudioOnly ? 'Full Story Narration' : 'Title only'}</div>
+          <div class="progress-bar" style="background:rgba(0,0,0,0.08)"><div class="progress-fill" id="progress-fill" style="background:var(--teal)"></div></div>
+        </div>
+        <div class="audio-time" id="audio-time" style="color:var(--teal); font-weight:600">0:00</div>
+      </div>
+    </div>
+    ${scenesOutput}
+    ${story.ending ? `<div style="background:var(--card);border:1.5px solid var(--cream3);border-radius:var(--r);padding:28px;margin-top:16px;font-family:'Lora',serif;font-size:1.05rem;line-height:1.8;color:var(--ink2);font-style:italic">${story.ending}</div>` : ''}
+    ${facts ? `<div style="margin-top:20px"><div style="font-size:0.85rem;font-weight:500;color:var(--ink2);margin-bottom:12px">What we learned</div><div class="facts-grid">${facts}</div></div>` : ''}
+    ${sources ? `<div class="sources-section"><div class="sources-title">📚 Sources — tap to verify</div>${sources}</div>` : ''}
+    <div style="margin-top:20px;display:flex;gap:10px">
+      <button class="btn-lg secondary" onclick="resetStoryForm()" style="flex:1">← New story</button>
+      <button class="btn-lg primary" onclick="addToPlaylist(event, 'story', '${story.id}', '${story.title.replace(/'/g, "\\'")}')" style="flex:1">+ Add to playlist</button>
+    </div>
+  `;
+}
+
+// ── Lesson generation ─────────────────────────────────────────
+async function generateLesson() {
+  const topic = document.getElementById('lesson-topic').value.trim();
+  if (!topic) { alert('Please enter a lesson topic'); return; }
+
+  const form = document.getElementById('lesson-form');
+  const loading = document.getElementById('lesson-loading');
+  const result = document.getElementById('lesson-result');
+
+  form.style.display = 'none';
+  loading.classList.add('visible');
+  result.classList.remove('visible');
+
+  // Animate steps
+  setStep('lesson-step-retrieve','active');
+  await delay(1200);
+  setStep('lesson-step-retrieve','done'); setStep('lesson-step-generate','active');
+  await delay(1000);
+  setStep('lesson-step-generate','done'); setStep('lesson-step-visuals','active');
+
+  try {
+    const res = await fetch(`${API}/lesson/generate`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({
+        topic,
+        ageBand: selectedLessonAge,
+        subject: document.getElementById('lesson-subject').value,
+        duration: parseInt(document.getElementById('lesson-duration').value),
+        curriculumNote: document.getElementById('lesson-curriculum').value,
+        withImages: true,
+        region: 'ng',
+      })
+    });
+
+    const lesson = await res.json();
+    if (!res.ok) throw new Error(lesson.error || 'Generation failed');
+
+    setStep('lesson-step-visuals','done');
+    loading.classList.remove('visible');
+    renderLesson(lesson);
+    result.classList.add('visible');
+    form.style.display = 'block';
+
+  } catch (err) {
+    loading.classList.remove('visible');
+    form.style.display = 'block';
+    result.innerHTML = `<div style="background:#fff0ee;border:1.5px solid #f0c0b8;border-radius:12px;padding:24px;color:var(--coral)"><strong>Generation failed</strong><br><small>${err.message}</small></div>`;
+    result.classList.add('visible');
+  }
+}
+
+function renderLesson(lesson) {
+  const el = document.getElementById('lesson-result');
+  const objectives = (lesson.learningObjectives || []).map(o =>
+    `<li style="margin-bottom:8px;font-size:0.9rem;color:var(--ink2)">${o}</li>`).join('');
+  const sections = (lesson.sections || []).map(s => {
+    const img = s.media?.url
+      ? `<img src="${s.media.url}" alt="${s.title}" style="width:100%;height:140px;object-fit:cover;border-radius:8px;margin-bottom:14px">`
+      : '';
+    return `
+      <div style="background:var(--card);border:1.5px solid var(--cream3);border-radius:var(--r);padding:24px;margin-bottom:14px">
+        ${img}
+        <div style="font-size:0.75rem;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">${s.type || 'Section'} · ${s.duration||5} min</div>
+        <div style="font-family:'Lora',serif;font-size:1.1rem;font-weight:600;margin-bottom:10px">${s.title}</div>
+        <div style="font-size:0.9rem;color:var(--ink2);line-height:1.7;border-left:3px solid var(--teal);padding-left:14px;font-style:italic">${s.narrationScript || ''}</div>
+      </div>`;
+  }).join('');
+  const vocab = (lesson.keyVocabulary || []).map(v =>
+    `<div style="padding:10px 14px;background:var(--cream2);border-radius:8px;margin-bottom:8px">
+      <strong style="font-size:0.88rem">${v.term}</strong>
+      <span style="font-size:0.83rem;color:var(--ink2);display:block;margin-top:2px">${v.definition}</span>
+    </div>`).join('');
+  const sources = (lesson.sources || []).map(s =>
+    `<a href="${s.url}" target="_blank" class="source-item"><div class="source-dot"></div>${s.name}</a>`).join('');
+
+  el.innerHTML = `
+    <div class="story-header">
+      <div class="story-title">${lesson.title}</div>
+      <div class="story-meta">
+        <span class="tag tag-teal">${lesson.ageBand}</span>
+        <span class="tag tag-gray">${lesson.duration} min</span>
+        ${lesson.subject ? `<span class="tag tag-gray">${lesson.subject}</span>` : ''}
+      </div>
+    </div>
+    ${objectives ? `<div style="background:var(--teal2);border-radius:var(--r);padding:24px;margin-bottom:20px"><div style="font-size:0.85rem;font-weight:500;color:var(--teal);margin-bottom:12px">Learning objectives</div><ul style="padding-left:18px">${objectives}</ul></div>` : ''}
+    ${sections}
+    ${vocab ? `<div style="margin-top:20px"><div style="font-size:0.85rem;font-weight:500;color:var(--ink2);margin-bottom:12px">Key vocabulary</div>${vocab}</div>` : ''}
+    ${sources ? `<div class="sources-section"><div class="sources-title">📚 Sources</div>${sources}</div>` : ''}
+    <div style="margin-top:20px"><button class="btn-lg secondary" onclick="resetLessonForm()" style="width:100%">← New lesson</button></div>
+  `;
+}
+
+// ── Voice cloning upload ──────────────────────────────────────
+async function handleVoiceUpload(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const status = document.getElementById('voice-upload-status');
+  status.style.display = 'block';
+  status.textContent = `Selected: ${file.name} (${(file.size/1024/1024).toFixed(1)} MB) — Ready to clone. Enter a name and click "Clone voice" to continue.`;
+}
+
+// ── Audio narration (basic) ────────────────────────────────────
+async function playNarration() {
+  if (!currentStory) return;
+  const btn = document.getElementById('res-play-btn') || document.querySelector('.play-btn');
+  
+  if (currentAudioNode && !currentAudioNode.paused) {
+    currentAudioNode.pause();
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="white"><polygon points="4,2 14,8 4,14"/></svg>';
+    return;
+  }
+  
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="white"><rect x="3" y="2" width="4" height="12" rx="1"/><rect x="9" y="2" width="4" height="12" rx="1"/></svg>';
+  
+  try {
+    // If complete audio mode was checked and it generated URLs
+    if (currentStory.introAudioUrl || (currentStory.scenes && currentStory.scenes[0] && currentStory.scenes[0].audioUrl)) {
+      const urls = [];
+      if (currentStory.introAudioUrl) urls.push(currentStory.introAudioUrl);
+      if (currentStory.scenes) currentStory.scenes.forEach(s => { if (s.audioUrl) urls.push(s.audioUrl); });
+      if (currentStory.endingAudioUrl) urls.push(currentStory.endingAudioUrl);
+      
+      let index = 0;
+      const playNext = () => {
+        if (index >= urls.length) {
+          btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="white"><polygon points="4,2 14,8 4,14"/></svg>';
+          return;
+        }
+        currentAudioNode = new Audio(urls[index]);
+        currentAudioNode.play();
+        
+        currentAudioNode.ontimeupdate = () => {
+          const pct = ((index + currentAudioNode.currentTime / currentAudioNode.duration) / urls.length * 100) || 0;
+          document.getElementById('progress-fill').style.width = pct + '%';
+          document.getElementById('audio-time').textContent = urls.length > 1 
+             ? `Part ${index + 1}/${urls.length}` 
+             : formatTime(currentAudioNode.currentTime);
+        };
+        
+        currentAudioNode.onended = () => {
+          index++;
+          if (index < urls.length) {
+            playNext();
+          } else {
+            // WHOLE story finished
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="white"><polygon points="4,2 14,8 4,14"/></svg>';
+            if (isPlaylistMode) {
+              currentIndex++;
+              playNextInPlaylist();
+            }
+          }
+        };
+      };
+      
+      playNext();
+    } else {
+      // Fallback: Generate and play just the title and tagline via API dynamically
+      const res = await fetch(`${API}/voice/speak`, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ text: currentStory.title + '. ' + currentStory.tagline, voiceId: selectedVoiceId })
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        currentAudioNode = new Audio(url);
+        currentAudioNode.play();
+        currentAudioNode.onended = () => {
+          btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="white"><polygon points="4,2 14,8 4,14"/></svg>';
+          if (isPlaylistMode) {
+            currentIndex++;
+            playNextInPlaylist();
+          }
+        };
+        currentAudioNode.ontimeupdate = () => {
+          const pct = (currentAudioNode.currentTime / currentAudioNode.duration * 100) || 0;
+          document.getElementById('progress-fill').style.width = pct + '%';
+          document.getElementById('audio-time').textContent = formatTime(currentAudioNode.currentTime);
+        };
+      } else {
+          throw new Error("Failed to generate voice on the fly for missing audio sequence.");
+      }
+    }
+  } catch(e) {
+    console.error("Narration error", e);
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="white"><polygon points="4,2 14,8 4,14"/></svg>';
+    
+    // FINAL FALLBACK: Browser Speech Synthesis
+    if (!currentStory) return;
+    console.log("Switching to system voice fallback...");
+    
+    // Stop any existing speech
+    speechSynthesis.cancel();
+    
+    const intro = `${currentStory.title}. ${currentStory.tagline || ''}. `;
+    const body = (currentStory.scenes || []).map(s => s.narrative).join(' ');
+    const end = currentStory.ending || '';
+    
+    const msg = new SpeechSynthesisUtterance(intro + body + end);
+    msg.rate = 1.0;
+    msg.pitch = 1.0;
+    msg.lang = 'en-GB';
+
+    msg.onstart = () => {
+      document.getElementById('audio-time').textContent = 'System Voice';
+      document.getElementById('progress-fill').style.width = '0%';
+    };
+    
+    msg.onend = () => {
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="white"><polygon points="4,2 14,8 4,14"/></svg>';
+      if (isPlaylistMode) {
+        currentIndex++;
+        playNextInPlaylist();
+      }
+    };
+
+    speechSynthesis.speak(msg);
+    alert('Narration failed (ElevenLabs Error). Switching to local system voice.');
+  }
+}
+
+function stopNarration() {
+  if (currentAudioNode) {
+    currentAudioNode.pause();
+    currentAudioNode.currentTime = 0;
+  }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  const btn = document.getElementById('res-play-btn') || document.querySelector('.play-btn');
+  if (btn) btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 16 16" fill="white"><polygon points="4,2 14,8 4,14"/></svg>';
+  const prog = document.getElementById('progress-fill');
+  if (prog) prog.style.width = '0%';
+  const time = document.getElementById('audio-time');
+  if (time) time.textContent = '0:00';
+}
+
+// ── Utils ─────────────────────────────────────────────────────
+function resetStoryForm() {
+  document.getElementById('story-result').classList.remove('visible');
+  document.getElementById('story-result').innerHTML = '';
+  document.getElementById('story-form').style.display = 'block';
+}
+function resetLessonForm() {
+  document.getElementById('lesson-result').classList.remove('visible');
+  document.getElementById('lesson-result').innerHTML = '';
+  document.getElementById('lesson-form').style.display = 'block';
+}
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+function formatTime(s) {
+  const m = Math.floor(s/60);
+  return m + ':' + String(Math.floor(s%60)).padStart(2,'0');
+}
+// ── Library ──────────────────────────────────────────────────
+async function showLibrary() {
+  const list = document.getElementById('library-list');
+  const empty = document.getElementById('library-empty');
+  
+  list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--ink3)">Loading your history...</div>';
+  empty.style.display = 'none';
+
+  try {
+    const res = await fetch(`${API}/library`);
+    const { history } = await res.json();
+
+    if (!history || history.length === 0) {
+      list.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+
+    list.innerHTML = history.map(item => `
+      <div class="lib-card" onclick="replayGeneration('${item.type}', '${item.id}')" style="background:#fff; border:1px solid var(--cream3); border-radius:12px; padding:24px; cursor:pointer; transition:all .2s; position:relative; overflow:hidden;">
+        <div style="position:absolute; top:12px; right:12px; display:flex; gap:8px;">
+          <button onclick="addToPlaylist(event, '${item.type}', '${item.id}', '${item.title.replace(/'/g, "\\'")}')" style="background:var(--teal2); border:none; border-radius:4px; padding:4px 8px; font-weight:bold; color:var(--teal); cursor:pointer;" title="Add to playlist">+</button>
+          <button onclick="deleteItem(event, '${item.type}', '${item.id}')" style="background:none; border:none; cursor:pointer; font-size:1.1rem; opacity:0.3;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.3" title="Delete from library">🗑️</button>
+        </div>
+        <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink3); margin-bottom:8px; display:flex; justify-content:space-between; padding-right:48px;">
+           <span>${item.type} • ${item.age_band}</span>
+           <span>${new Date(item.created_at).toLocaleDateString()}</span>
+        </div>
+        <h3 style="font-family:'Lora',serif; font-size:1.15rem; margin-bottom:8px; color:var(--ink)">${item.title}</h3>
+        <p style="font-size:0.85rem; color:var(--ink2); line-height:1.4; margin-bottom:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.topic}</p>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+          ${item.has_images ? '<span title="Has images">🖼️</span>' : ''}
+          ${item.has_audio ? '<span title="Has audio">🔊</span>' : ''}
+          ${item.mode === 'generic' ? '<span class="tag tag-teal">Creative</span>' : '<span class="tag tag-gold">Grounded</span>'}
+          ${currentUser?.role === 'admin' ? `
+            <button onclick="event.stopPropagation(); openMediaManager('${item.id}')" style="background:var(--cream2); border:1px solid var(--cream3); border-radius:4px; padding:4px 8px; font-size:0.65rem; font-weight:700; color:var(--ink2); cursor:pointer; margin-left:auto;">🖼️ Manage Media</button>
+          ` : ''}
+        </div>
+        <style>
+          .lib-card:hover { border-color:var(--gold); transform:translateY(-2px); box-shadow:var(--shadow); }
+        </style>
+      </div>
+    `).join('');
+
+  } catch (err) {
+    list.innerHTML = `<div style="color:var(--coral); grid-column:1/-1">Failed to load library: ${err.message}</div>`;
+  }
+}
+
+async function openMediaManager(storyId) {
+  const modal = document.getElementById('media-modal');
+  const list = document.getElementById('media-manager-list');
+  list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:100px;">Loading story metadata...</div>';
+  modal.style.display = 'flex';
+
+  try {
+    const res = await fetch(`${API}/library/item/story/${storyId}`);
+    const story = await res.json();
+    
+    list.innerHTML = (story.scenes || []).map((scene, idx) => `
+      <div style="background:var(--cream1); border:1px solid var(--cream3); border-radius:16px; padding:20px;">
+        <div style="font-size:0.75rem; color:var(--ink3); text-transform:uppercase; margin-bottom:12px; font-weight:700;">Scene ${idx+1}</div>
+        <div style="width:100%; aspect-ratio:16/9; background:#eee; border-radius:10px; overflow:hidden; margin-bottom:16px; border:1px solid var(--cream3);">
+           <img src="${scene.media?.url || ''}" style="width:100%; height:100%; object-fit:cover;">
+        </div>
+        <div style="font-size:0.85rem; color:var(--ink); margin-bottom:16px; font-weight:500; height:40px; overflow:hidden;">${scene.title}</div>
+        
+        <div style="display:flex; gap:10px;">
+           <button class="btn-primary" onclick="triggerFileUpload('${storyId}', ${idx})" style="flex:1; padding:10px; font-size:0.75rem; background:var(--ink); border-color:var(--ink);">Upload File</button>
+           <button class="btn-primary" onclick="promptMediaUrl('${storyId}', ${idx})" style="flex:1; padding:10px; font-size:0.75rem; background:var(--teal); border-color:var(--teal);">Set URL</button>
+        </div>
+      </div>
+    `).join('');
+
+    // Hidden file input for uploads
+    if (!document.getElementById('admin-media-file')) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.id = 'admin-media-file';
+      input.style.display = 'none';
+      input.accept = 'image/*';
+      document.body.appendChild(input);
+    }
+
+  } catch (err) {
+    list.innerHTML = `<div style="color:var(--coral); grid-column:1/-1">Failed to load story: ${err.message}</div>`;
+  }
+}
+
+function triggerFileUpload(storyId, sceneIdx) {
+  const input = document.getElementById('admin-media-file');
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const uploadRes = await fetch(`${API}/media/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      const uploadData = await uploadRes.json();
+      if (uploadData.url) {
+        await patchSceneMedia(storyId, sceneIdx, uploadData.url);
+      }
+    } catch (err) {
+      alert("Upload failed: " + err.message);
+    }
+  };
+  input.click();
+}
+
+async function promptMediaUrl(storyId, sceneIdx) {
+  const url = prompt("Enter a direct image URL:");
+  if (url) await patchSceneMedia(storyId, sceneIdx, url);
+}
+
+async function patchSceneMedia(storyId, sceneIdx, url) {
+  try {
+    const res = await fetch(`${API}/library/story/${storyId}/scene/${sceneIdx}/media`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+
+    if (res.ok) {
+      alert("Image updated!");
+      openMediaManager(storyId); // Refresh modal
+    } else {
+      const err = await res.json();
+      alert("Error: " + err.error);
+    }
+  } catch (err) {
+    alert("System error: " + err.message);
+  }
+}
+
+async function replayGeneration(type, id) {
+  const loading = document.getElementById(type === 'story' ? 'story-loading' : 'lesson-loading');
+  const result = document.getElementById(type === 'story' ? 'story-result' : 'lesson-result');
+  const form = document.getElementById(type === 'story' ? 'story-form' : 'lesson-form');
+  
+  showView(type === 'story' ? 'story-gen' : 'lesson-gen');
+  form.style.display = 'none';
+  loading.classList.add('visible');
+  result.classList.remove('visible');
+
+  try {
+    const res = await fetch(`${API}/library/item/${type}/${id}`);
+    const data = await res.json();
+    
+    loading.classList.remove('visible');
+    if (type === 'story') {
+      currentStory = data; // Set globally for audio player
+      renderStory(data);
+    } else {
+      renderLesson(data);
+    }
+    result.classList.add('visible');
+  } catch (err) {
+    alert('Failed to load generation: ' + err.message);
+    form.style.display = 'block';
+    loading.classList.remove('visible');
+  }
+}
+
+async function deleteItem(event, type, id) {
+  event.stopPropagation();
+  if (!confirm(`Permanently delete this ${type} from your library?`)) return;
+  
+  try {
+    const res = await fetch(`${API}/library/${type}/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      playlist = playlist.filter(i => i.id !== id);
+      renderPlaylist();
+      showLibrary(); // Refresh list
+    } else {
+      const data = await res.json();
+      throw new Error(data.error || 'Delete failed');
+    }
+  } catch (err) {
+    alert('Failed to delete: ' + err.message);
+  }
+}
+
+// ── Playlist Logic ───────────────────────────────────────────
+function addToPlaylist(event, type, id, title) {
+  event.stopPropagation();
+  if (playlist.some(i => i.id === id)) return;
+  playlist.push({ type, id, title });
+  renderPlaylist();
+}
+
+function removeFromPlaylist(idx) {
+  playlist.splice(idx, 1);
+  renderPlaylist();
+}
+
+function clearPlaylist() {
+  playlist = [];
+  currentIndex = -1;
+  isPlaylistMode = false;
+  renderPlaylist();
+}
+
+function renderPlaylist() {
+  const list = document.getElementById('playlist-list');
+  const btn = document.getElementById('btn-play-playlist');
+  
+  if (playlist.length === 0) {
+    list.innerHTML = `<div style="text-align:center; padding:30px; color:var(--ink3); font-size:0.85rem; border:1px dashed var(--cream3); border-radius:10px;">No stories in queue.<br>Click <span style="font-size:1rem; vertical-align:middle">+</span> on a card to add.</div>`;
+    btn.disabled = true;
+    return;
+  }
+  
+  btn.disabled = false;
+  list.innerHTML = playlist.map((item, i) => `
+    <div style="display:flex; align-items:center; gap:10px; padding:10px; background:white; border:1px solid var(--cream3); border-radius:8px; font-size:0.9rem; ${currentIndex === i ? 'border-color:var(--teal); background:var(--teal2);' : ''}">
+      <div style="width:20px; font-size:0.75rem; color:var(--ink3)">${i+1}</div>
+      <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; ${currentIndex === i ? 'font-weight:600' : ''}">${item.title}</div>
+      <button onclick="removeFromPlaylist(${i})" style="background:none; border:none; cursor:pointer; opacity:0.5;">✕</button>
+    </div>
+  `).join('');
+}
+
+async function startPlaylist() {
+  if (playlist.length === 0) return;
+  isPlaylistMode = true;
+  currentIndex = 0;
+  const item = playlist[0];
+  startImmersivePlayer(item.id);
+}
+
+async function playNextInPlaylist() {
+  if (!isPlaylistMode) return;
+  
+  if (currentIndex >= playlist.length) {
+    if (isLoopingPlaylist) {
+      currentIndex = 0;
+    } else {
+      isPlaylistMode = false;
+      currentIndex = -1;
+      showView('library');
+      return;
+    }
+  }
+  
+  const item = playlist[currentIndex];
+  renderPlaylist();
+  startImmersivePlayer(item.id);
+}
+
+// ── Corpus Logic ─────────────────────────────────────────────
+async function showCorpus() {
+  const list = document.getElementById('corpus-list');
+  list.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--ink3)">Browsing the knowledge vault...</div>';
+
+  try {
+    const res = await fetch(`${API}/knowledge?pageSize=20&userId=${userId}`);
+    const data = await res.json();
+    const blocks = data.blocks || [];
+    
+    if (blocks.length === 0) {
+      list.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:100px; color:var(--ink3)">Corpus is currently empty.</div>`;
+      return;
+    }
+
+    list.innerHTML = blocks.map(item => `
+      <div style="background:#fff; border:1px solid ${item.user_id ? 'var(--teal)' : 'var(--cream3)'}; border-radius:12px; padding:20px; transition:all .2s; position:relative;">
+        ${item.user_id ? '<span style="position:absolute; top:-10px; right:10px; background:var(--teal); color:white; font-size:0.6rem; padding:2px 8px; border-radius:10px;">PERSONAL</span>' : ''}
+        <div style="font-size:0.65rem; text-transform:uppercase; font-weight:600; color:${item.user_id ? 'var(--teal)' : 'var(--ink3)'}; margin-bottom:8px;">${item.subjects?.join(', ') || 'Custom'}</div>
+        <h4 style="font-family:'Lora',serif; margin-bottom:10px; font-size:1.05rem;">${item.topic}</h4>
+        <div style="font-size:0.82rem; color:var(--ink2); line-height:1.6; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${item.content || item.summary}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    list.innerHTML = `<div style="color:var(--coral); grid-column:1/-1">Failed to load corpus: ${err.message}</div>`;
+  }
+}
+
+async function addPersonalFact() {
+  const fact = document.getElementById('user-fact').value.trim();
+  if (!fact) return;
+
+  try {
+    const res = await fetch(`${API}/knowledge/user`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        topic: 'Personal Fact', 
+        content: fact,
+        userId: userId 
+      })
+    });
+    if (res.ok) {
+      document.getElementById('user-fact').value = '';
+      showCorpus();
+    }
+  } catch (err) {
+    alert('Failed to save personal fact');
+  }
+}
+
+async function triggerIngest() {
+  const topic = document.getElementById('admin-topic').value.trim();
+  const token = document.getElementById('admin-token').value.trim();
+  const status = document.getElementById('ingest-status');
+  const btn = document.getElementById('btn-ingest');
+
+  if (!topic || !token) { alert('Missing topic or admin passkey'); return; }
+
+  btn.disabled = true;
+  status.style.display = 'block';
+  status.style.background = 'var(--cream2)';
+  status.textContent = '🔄 Authenticating and queuing job...';
+
+  try {
+    const res = await fetch(`${API}/ingest`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Admin-Token': token 
+      },
+      body: JSON.stringify({ topic, direct: true })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Ingestion failed');
+
+    status.style.background = 'var(--teal2)';
+    status.style.color = 'var(--teal)';
+    status.textContent = `✅ Successfully queued. Job ID: ${data.jobId}. Worker is now processing...`;
+    document.getElementById('admin-topic').value = '';
+    
+    // Refresh corpus after a short delay
+    setTimeout(() => showCorpus(), 2000);
+
+  } catch (err) {
+    status.style.background = '#fff0ee';
+    status.style.color = 'var(--coral)';
+    status.textContent = `❌ Error: ${err.message}`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Player Controls Logic ────────────────────────────────────
+function togglePlayerSidebar() {
+  document.getElementById('player-layout').classList.toggle('sidebar-collapsed');
+}
+
+function togglePlayerPlayPause() {
+  const isSystemVoice = !currentAudioNode || currentAudioNode.src === '';
+  const playBtn = document.getElementById('svg-play');
+  const pauseBtn = document.getElementById('svg-pause');
+
+  if (isSystemVoice) {
+    if (speechSynthesis.speaking) {
+      if (speechSynthesis.paused) {
+        speechSynthesis.resume();
+        playBtn.style.display = 'none';
+        pauseBtn.style.display = 'block';
+      } else {
+        speechSynthesis.pause();
+        playBtn.style.display = 'block';
+        pauseBtn.style.display = 'none';
+      }
+    }
+    return;
+  }
+
+  if (currentAudioNode.paused) {
+    currentAudioNode.play();
+    playBtn.style.display = 'none';
+    pauseBtn.style.display = 'block';
+  } else {
+    currentAudioNode.pause();
+    playBtn.style.display = 'block';
+    pauseBtn.style.display = 'none';
+  }
+}
+
+// Update highlighting styles
+const style = document.createElement('style');
+style.textContent = `
+  .highlight-word-active {
+    color: #fff !important;
+    text-shadow: 0 0 15px rgba(255,255,255,0.8), 0 0 30px var(--gold);
+    opacity: 1 !important;
+  }
+`;
+document.head.appendChild(style);
+
+// Helper to format time
+function formatTime(sec) {
+  if (!sec) return '0:00';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+}
+
+// ── Immersive Player Logic ────────────────────────────────────
+let currentPlayerSceneIdx = 0;
+
+async function startImmersivePlayer(storyId) {
+  const res = await fetch(`${API}/library/item/story/${storyId}`);
+  const story = await res.json();
+  
+  currentStory = story;
+  showView('player');
+  currentPlayerSceneIdx = 0;
+  
+  // Populate Scene Index (Left)
+  const indexEl = document.getElementById('player-scene-index');
+  if (indexEl) {
+    indexEl.innerHTML = story.scenes.map((s, i) => `
+      <div class="index-item ${i === 0 ? 'active' : ''}" id="index-item-${i}" onclick="jumpToScene(${i})">
+        <div style="font-weight:600; margin-bottom:4px;">Scene ${i+1}</div>
+        <div style="font-size:0.7rem; opacity:0.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.title}</div>
+      </div>
+    `).join('');
+  }
+
+  renderPlayerSlide(0);
+  renderPlayerSidebar();
+  
+  // Start narration
+  await playImmersiveNarration();
+}
+
+function jumpToScene(idx) {
+  if (!currentStory) return;
+  renderPlayerSlide(idx);
+  // Ideally sync audio here too, but for now we reset slide
+}
+
+function renderPlayerSlide(idx) {
+  if (!currentStory.scenes) return;
+  const scene = currentStory.scenes[idx];
+  if (!scene) return;
+
+  // 1. Update Center (Visual)
+  const visualBox = document.getElementById('player-visual-box');
+  const imgUrl = scene.media?.url || 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1200';
+  if (visualBox) {
+    visualBox.innerHTML = `<img src="${imgUrl}" alt="${scene.title}" style="animation: fadeIn 0.4s ease-out;">`;
+  }
+
+  // 2. Update Right (Text)
+  const textContent = document.getElementById('player-text-content');
+  const tagEl = document.getElementById('player-scene-tag');
+  if (tagEl) tagEl.textContent = `Scene ${idx + 1} of ${currentStory.scenes.length}`;
+  
+  const words = scene.narrative.split(' ').map(w => `<span class="highlight-word">${w}</span>`).join(' ');
+  if (textContent) {
+    textContent.innerHTML = `
+      <div style="font-size:0.85rem; color:var(--gold2); margin-bottom:15px; font-weight:600;">"${scene.title}"</div>
+      <div id="player-text-${idx}">${words}</div>
+      <div style="margin-top:40px; height:100px;"></div> <!-- Spacer -->
+    `;
+    textContent.scrollTop = 0;
+  }
+
+  // 3. Update Left (Index)
+  document.querySelectorAll('.index-item').forEach(el => el.classList.remove('active'));
+  document.getElementById(`index-item-${idx}`)?.classList.add('active');
+}
+
+
+function renderPlayerSidebar() {
+  const container = document.getElementById('player-up-next');
+  if (playlist.length === 0) {
+    container.innerHTML = '<div style="color:rgba(255,255,255,0.2); font-size:0.8rem;">Playlist is empty</div>';
+    return;
+  }
+  
+  container.innerHTML = playlist.slice(currentIndex + 1, currentIndex + 6).map((item, i) => `
+    <div class="up-next-item">
+      <div style="opacity:0.5; font-size:0.7rem; margin-bottom:4px;">${item.type}</div>
+      <div style="font-weight:500;">${item.title}</div>
+    </div>
+  `).join('');
+}
+
+async function playImmersiveNarration() {
+  const urls = [];
+  if (currentStory.introAudioUrl) urls.push(currentStory.introAudioUrl);
+  if (currentStory.scenes) currentStory.scenes.forEach(s => { if (s.audioUrl) urls.push(s.audioUrl); });
+  if (currentStory.endingAudioUrl) urls.push(currentStory.endingAudioUrl);
+
+  if (urls.length === 0) {
+    await playSlideSpeech(0);
+    return;
+  }
+
+  let index = 0;
+  const playNext = () => {
+    if (currentAudioNode) currentAudioNode.pause();
+    
+    // Logic to sync slide with audio segment
+    const sceneIdx = currentStory.introAudioUrl ? index - 1 : index;
+    if (sceneIdx >= 0 && sceneIdx < currentStory.scenes.length) {
+      renderPlayerSlide(sceneIdx);
+    }
+
+    currentAudioNode = new Audio(urls[index]);
+    currentAudioNode.play().catch(err => {
+      console.warn("Audio play failed, advancing slide anyway", err);
+      setTimeout(playNext, 3000); 
+    });
+
+    currentAudioNode.ontimeupdate = () => {
+      const pct = (currentAudioNode.currentTime / currentAudioNode.duration * 100) || 0;
+      document.getElementById('player-progress-fill').style.width = pct + '%';
+      document.getElementById('player-time').textContent = formatTime(currentAudioNode.currentTime);
+      
+      // Smart Text Highlighting Logic
+      const currentIdx = currentStory.introAudioUrl ? index - 1 : index;
+      if (currentIdx >= 0) {
+        const words = document.querySelectorAll(`#player-text-${currentIdx} .highlight-word`);
+        const highlightCount = Math.floor(pct / (100 / words.length));
+        words.forEach((w, i) => {
+          if (i <= highlightCount) w.classList.add('highlight-word-active');
+          else w.classList.remove('highlight-word-active');
+        });
+      }
+    };
+
+    currentAudioNode.onended = () => {
+      index++;
+      if (index < urls.length) {
+        playNext();
+      } else {
+        if (isPlaylistMode) {
+          currentIndex++;
+          playNextInPlaylistImmersive();
+        }
+      }
+    };
+  };
+  
+  playNext();
+}
+
+async function playSlideSpeech(idx) {
+  if (idx >= currentStory.scenes.length) {
+    if (isPlaylistMode) {
+      currentIndex++;
+      playNextInPlaylistImmersive();
+    }
+    return;
+  }
+
+  renderPlayerSlide(idx);
+  const text = currentStory.scenes[idx].narrative;
+  const msg = new SpeechSynthesisUtterance(text);
+  msg.rate = 0.95;
+  msg.pitch = 1.05;
+  msg.onend = () => playSlideSpeech(idx + 1);
+  speechSynthesis.speak(msg);
+}
+
+async function playNextInPlaylistImmersive() {
+  if (!isPlaylistMode) return;
+  if (currentIndex >= playlist.length) {
+    if (isLoopingPlaylist) {
+      currentIndex = 0;
+    } else {
+      isPlaylistMode = false;
+      showView('library');
+      return;
+    }
+  }
+  
+  const item = playlist[currentIndex];
+  startImmersivePlayer(item.id);
+}
+
+// ── MP4 Video Export ──────────────────────────────────────────
+let mediaRecorder;
+let recordedChunks = [];
+
+async function exportStoryToMP4() {
+  if (!currentStory) return;
+  const btn = event.currentTarget || document.querySelector('[title="Export as Video"]');
+  const originalText = btn.innerHTML;
+  
+  try {
+    btn.innerHTML = "🎬 Rendering...";
+    btn.disabled = true;
+
+    const res = await fetch(`${API}/story/export/video`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: currentStory.id })
+    });
+
+    if (!res.ok) throw new Error("Server failed to render video");
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentStory.title.replace(/\s+/g,'_')}.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+  } catch (err) {
+    alert("Video export failed: " + err.message);
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}
+
+// ── Export Story PDF Logic ────────────────────────────────────
+async function downloadCurrentStoryPDF() {
+  if (!currentStory) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const story = currentStory;
+
+  // Title Page
+  doc.setFillColor(26, 23, 20); // Dark background
+  doc.rect(0, 0, 210, 297, 'F');
+  
+  doc.setFont('times', 'bold');
+  doc.setTextColor(200, 144, 42); // Gold
+  doc.setFontSize(36);
+  doc.text(story.title, 105, 120, { align: 'center' });
+  
+  doc.setFontSize(14);
+  doc.setTextColor(255, 255, 255);
+  doc.text(`A Story Vista Experience`, 105, 140, { align: 'center' });
+  
+  doc.setFontSize(10);
+  doc.setTextColor(150, 150, 150);
+  doc.text(`Copyright Storyvista by Elizabeth O. Edwards | appvista.space`, 105, 270, { align: 'center' });
+
+  // Scenes
+  for(const scene of story.scenes) {
+    doc.addPage();
+    
+    // Watermark on every page
+    doc.setFontSize(8);
+    doc.setTextColor(200, 200, 200);
+    doc.text(`Elizabeth O. Edwards · appvista.space`, 200, 10, { align: 'right' });
+
+    // Scene Title
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0);
+    doc.text(scene.title, 20, 30);
+
+    // Narrative
+    doc.setFontSize(12);
+    const lines = doc.splitTextToSize(scene.narrative, 170);
+    doc.text(lines, 20, 45);
+
+    // Note about images in PDF 
+    if (scene.media?.url) {
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`[Digital Visual available at: ${scene.media.url.slice(0, 60)}...]`, 20, 280);
+    }
+  }
+
+  doc.save(`${story.title.replace(/\s+/g, '_')}_StoryBook.pdf`);
+}
+</script>
+</body>
+</html>
