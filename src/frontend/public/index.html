@@ -2211,29 +2211,48 @@ function formatTime(sec) {
 let currentPlayerSceneIdx = 0;
 
 async function startImmersivePlayer(storyId) {
-  const res = await fetch(`${API}/library/item/story/${storyId}`);
-  const story = await res.json();
-  
-  currentStory = story;
-  showView('player');
-  currentPlayerSceneIdx = 0;
-  
-  // Populate Scene Index (Left)
-  const indexEl = document.getElementById('player-scene-index');
-  if (indexEl) {
-    indexEl.innerHTML = story.scenes.map((s, i) => `
-      <div class="index-item ${i === 0 ? 'active' : ''}" id="index-item-${i}" onclick="jumpToScene(${i})">
-        <div style="font-weight:600; margin-bottom:4px;">Scene ${i+1}</div>
-        <div style="font-size:0.7rem; opacity:0.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.title}</div>
-      </div>
-    `).join('');
+  if (!storyId || storyId === 'undefined') {
+    alert("Error: Invalid story ID.");
+    return;
   }
 
-  renderPlayerSlide(0);
-  renderPlayerSidebar();
-  
-  // Start narration
-  await playImmersiveNarration();
+  try {
+    const res = await fetch(`${API}/library/item/story/${storyId}`);
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || `Server returned ${res.status}`);
+    }
+    const story = await res.json();
+    
+    if (!story || !story.scenes) {
+        throw new Error("This story has no scenes or is malformed.");
+    }
+
+    currentStory = story;
+    showView('player');
+    currentPlayerSceneIdx = 0;
+    
+    // Populate Scene Index (Left)
+    const indexEl = document.getElementById('player-scene-index');
+    if (indexEl) {
+      indexEl.innerHTML = story.scenes.map((s, i) => `
+        <div class="index-item ${i === 0 ? 'active' : ''}" id="index-item-${i}" onclick="jumpToScene(${i})">
+          <div style="font-weight:600; margin-bottom:4px;">Scene ${i+1}</div>
+          <div style="font-size:0.7rem; opacity:0.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${s.title}</div>
+        </div>
+      `).join('');
+    }
+
+    renderPlayerSlide(0);
+    renderPlayerSidebar();
+    
+    // Start narration
+    await playImmersiveNarration();
+
+  } catch (err) {
+    alert("Failed to start story: " + err.message);
+    showView('library');
+  }
 }
 
 function jumpToScene(idx) {

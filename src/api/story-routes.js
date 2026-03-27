@@ -136,15 +136,18 @@ router.get('/library', async (req, res) => {
 router.get('/library/item/:type/:id', async (req, res) => {
   try {
     const { type, id } = req.params;
+    if (!id || id === 'undefined') return res.status(400).json({ error: 'Valid ID required' });
+    
     let content;
     if (type === 'story') content = await getStory(id);
     else if (type === 'lesson') content = await getLesson(id);
     else return res.status(400).json({ error: 'Invalid type' });
 
-    if (!content) return res.status(404).json({ error: 'Item not found' });
+    if (!content) return res.status(404).json({ error: 'Item not found in library' });
     res.json(content);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    logger.error(`[API] Library item fetch error: ${err.message}`);
+    res.status(500).json({ error: 'Failed to retrieve item. Check server logs.' });
   }
 });
 
