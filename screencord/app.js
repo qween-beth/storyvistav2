@@ -530,16 +530,24 @@ window.joinSession = async function() {
     
     if (!code) return showToast('Please enter a code', 'error');
     
-    localStorage.setItem('screencord_user_name', name);
-    if(el.watchStatus) el.watchStatus.textContent = 'Connecting to ' + code + '...';
-    navigate('watch');
-    closeJoinModal();
-    resetGlobalSidebar();
-
+    // Pre-join: Update UI immediately so user knows something is happening
+    const originalText = el.joinCode.value;
+    el.joinCode.disabled = true;
+    el.joinName.disabled = true;
+    
     try {
+        // Initialise state but wait for connection before navigating
+        showToast('Connecting to session...', 'info');
+        
         await ScreencordShare.initSession(false, code);
         await ScreencordShare.connectToHost(code, name);
         
+        // Success: Now navigate
+        localStorage.setItem('screencord_user_name', name);
+        navigate('watch');
+        closeJoinModal();
+        resetGlobalSidebar();
+
         ScreencordShare.onStreamReceived = (stream) => {
             el.watchPreview.srcObject = stream;
             el.watchPreview.play();
@@ -554,8 +562,9 @@ window.joinSession = async function() {
         showToast('Joined session successfully!', 'success');
         
     } catch (err) {
-        showToast('Could not join: Session not found', 'error');
-        navigate('record');
+        el.joinCode.disabled = false;
+        el.joinName.disabled = false;
+        showToast('Could not join: Session not found or connection failed', 'error');
     }
 }
 
